@@ -13,7 +13,7 @@ const db = mysql.createPool({
 });
 
 app.use(cors(), function (req, res, next) {
-  const allowedOrigins = ["https://lucia-gomez.netlify.app", 'http://localhost:8000'];
+  const allowedOrigins = ["https://lucia-gomez.netlify.app", 'http://localhost:3000'];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -34,6 +34,15 @@ app.get("/api/get", (req, res) => {
   });
 })
 
+app.get("/api/get/:slug", (req, res) => {
+  const slug = req.params.slug;
+  const sql = "SELECT * FROM posts WHERE slug = ?;";
+  db.query(sql, slug, (err, result) => {
+    res.send(result);
+    if (err) console.error(err);
+  })
+});
+
 app.post("/api/create", (req, res) => {
   const datetime = req.body.datetime;
   const dateString = req.body.dateString;
@@ -50,13 +59,11 @@ app.post("/api/create", (req, res) => {
 });
 
 app.post("/api/like", (req, res) => {
-  let id = req.body.id;
-  id = id.substring(id.lastIndexOf("_") + 1);
+  const id = req.body.id;
   const update = "UPDATE posts SET likes = likes + 1 WHERE id = ?;"
   db.query(update, [id], (err, result) => {
     if (err) console.error(err);
     res.send(result);
-    console.log(result);
   });
 });
 
