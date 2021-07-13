@@ -6,13 +6,20 @@ const cors = require('cors');
 const app = express();
 
 const db = mysql.createPool({
-  host: 'us-cdbr-east-04.cleardb.com',
-  user: 'b1601efb83fa98',
-  password: '2183ba1c',
-  database: 'heroku_a0f43feca6ab6ff'
+  host: process.env.NODE_ENV === 'development' ? 'localhost' : 'us-cdbr-east-04.cleardb.com',
+  user: process.env.NODE_ENV === 'development' ? 'root' : 'b1601efb83fa98',
+  password: process.env.NODE_ENV === 'development' ? process.env.DB_PASSWORD : '2183ba1c',
+  database: process.env.NODE_ENV === 'development' ? 'WebsiteBlog' : 'heroku_a0f43feca6ab6ff'
 });
 
-app.use(cors());
+app.use(cors(), function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "https://lucia-gomez.netlify.app");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -34,6 +41,7 @@ app.post("/api/create", (req, res) => {
   const sql = "INSERT INTO posts (date, dateString, title, summary, content, slug) VALUES (?, ?, ?, ?, ?, ?);";
   db.query(sql, [datetime, dateString, title, summary, content, slug], (err, result) => {
     console.error(err);
+    res.send(result);
   });
 });
 
@@ -42,6 +50,7 @@ app.post("/api/like", (req, res) => {
   const update = "UPDATE posts SET likes = likes + 1 WHERE id = ?;"
   db.query(update, [id], (err, result) => {
     console.error(err);
+    res.send(result);
   });
 });
 
@@ -50,6 +59,7 @@ app.post("/api/unlike", (req, res) => {
   const update = "UPDATE posts SET likes = likes - 1 WHERE id = ?;"
   db.query(update, [id], (err, result) => {
     console.error(err);
+    res.send(result);
   });
 });
 
