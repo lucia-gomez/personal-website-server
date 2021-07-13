@@ -76,6 +76,15 @@ app.post("/api/unlike", (req, res) => {
   });
 });
 
+app.delete("/api/delete/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "DELETE FROM posts WHERE id = ?;";
+  db.query(sql, [id], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
 const PORT = 3001;
 
 app.listen(process.env.PORT || PORT, () => {
