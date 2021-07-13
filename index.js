@@ -13,7 +13,11 @@ const db = mysql.createPool({
 });
 
 app.use(cors(), function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://lucia-gomez.netlify.app");
+  const allowedOrigins = ["https://lucia-gomez.netlify.app", 'http://localhost:8000'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
@@ -40,17 +44,19 @@ app.post("/api/create", (req, res) => {
 
   const sql = "INSERT INTO posts (date, dateString, title, summary, content, slug) VALUES (?, ?, ?, ?, ?, ?);";
   db.query(sql, [datetime, dateString, title, summary, content, slug], (err, result) => {
-    console.error(err);
+    if (err) console.error(err);
     res.send(result);
   });
 });
 
 app.post("/api/like", (req, res) => {
-  const id = req.body.id;
+  let id = req.body.id;
+  id = id.substring(id.lastIndexOf("_") + 1);
   const update = "UPDATE posts SET likes = likes + 1 WHERE id = ?;"
   db.query(update, [id], (err, result) => {
-    console.error(err);
+    if (err) console.error(err);
     res.send(result);
+    console.log(result);
   });
 });
 
@@ -58,7 +64,7 @@ app.post("/api/unlike", (req, res) => {
   const id = req.body.id;
   const update = "UPDATE posts SET likes = likes - 1 WHERE id = ?;"
   db.query(update, [id], (err, result) => {
-    console.error(err);
+    if (err) console.error(err);
     res.send(result);
   });
 });
