@@ -76,10 +76,31 @@ app.post("/api/unlike", (req, res) => {
   });
 });
 
+app.post("/api/likes/reset", (req, res) => {
+  const id = req.body.id;
+  const update = "UPDATE posts SET likes = 0 WHERE id = ?;"
+  db.query(update, [id], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  });
+});
+
 app.delete("/api/delete/:id", (req, res) => {
   const id = req.params.id;
   const sql = "DELETE FROM posts WHERE id = ?;";
   db.query(sql, [id], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
+app.post("/api/update", (req, res) => {
+  const id = req.body.id;
+  const title = req.body.title;
+  const summary = req.body.summary;
+  const newContent = req.body.content;
+  const sql = "UPDATE posts SET content = ?, title = ?, summary = ? WHERE id = ?;";
+  db.query(sql, [newContent, title, summary, id], (err, result) => {
     if (err) console.error(err);
     res.send(result);
   })
