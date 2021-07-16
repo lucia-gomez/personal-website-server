@@ -106,6 +106,48 @@ app.post("/api/update", (req, res) => {
   })
 });
 
+app.get("/api/draft/get", (req, res) => {
+  const sql = "SELECT * from drafts;";
+  db.query(sql, (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
+app.post("/api/draft/create", (req, res) => {
+  const title = req.body.title;
+  const summary = req.body.summary;
+  const content = req.body.content;
+  const slug = req.body.slug;
+  const sql = "INSERT INTO drafts (title, summary, content, slug) VALUES (?, ?, ?, ?);";
+  db.query(sql, [title, summary, content, slug], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
+app.delete("/api/draft/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "DELETE FROM drafts WHERE id = ?;";
+  db.query(sql, [id], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
+app.post("/api/draft/update", (req, res) => {
+  const id = req.body.id;
+  const title = req.body.title;
+  const summary = req.body.summary;
+  const slug = req.body.slug;
+  const newContent = req.body.content;
+  const sql = "UPDATE drafts SET content = ?, title = ?, summary = ?, slug = ? WHERE id = ?;";
+  db.query(sql, [newContent, title, summary, slug, id], (err, result) => {
+    if (err) console.error(err);
+    res.send(result);
+  })
+});
+
 const PORT = 3001;
 
 app.listen(process.env.PORT || PORT, () => {
