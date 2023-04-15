@@ -64,12 +64,13 @@ app.post("/api/create", (req, res) => {
   const summary = req.body.summary
   const content = req.body.content
   const slug = req.body.slug
+  const imageUrl = req.body.imageUrl
 
   const sql =
-    "INSERT INTO posts (date, dateString, title, summary, content, slug) VALUES (?, ?, ?, ?, ?, ?);"
+    "INSERT INTO posts (date, dateString, title, summary, content, slug, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?);"
   db.query(
     sql,
-    [datetime, dateString, title, summary, content, slug],
+    [datetime, dateString, title, summary, content, slug, imageUrl],
     (err, result) => {
       if (err) console.error(err)
       res.send(result)
@@ -118,12 +119,18 @@ app.post("/api/update", (req, res) => {
   const title = req.body.title
   const summary = req.body.summary
   const newContent = req.body.content
+  const newDateString = req.body.dateString
+  const newImageUrl = req.body.imageUrl
   const sql =
-    "UPDATE posts SET content = ?, title = ?, summary = ? WHERE id = ?;"
-  db.query(sql, [newContent, title, summary, id], (err, result) => {
-    if (err) console.error(err)
-    res.send(result)
-  })
+    "UPDATE posts SET dateString = ?, content = ?, title = ?, summary = ?, imageUrl = ? WHERE id = ?;"
+  db.query(
+    sql,
+    [newDateString, newContent, title, summary, newImageUrl, id],
+    (err, result) => {
+      if (err) console.error(err)
+      res.send(result)
+    }
+  )
 })
 
 app.get("/api/draft/get", (req, res) => {
@@ -139,9 +146,10 @@ app.post("/api/draft/create", (req, res) => {
   const summary = req.body.summary
   const content = req.body.content
   const slug = req.body.slug
+  const imageUrl = req.body.imageUrl
   const sql =
-    "INSERT INTO drafts (title, summary, content, slug) VALUES (?, ?, ?, ?);"
-  db.query(sql, [title, summary, content, slug], (err, result) => {
+    "INSERT INTO drafts (title, summary, content, slug, imageUrl) VALUES (?, ?, ?, ?, ?);"
+  db.query(sql, [title, summary, content, slug, imageUrl], (err, result) => {
     if (err) console.error(err)
     res.send(result)
   })
@@ -162,12 +170,17 @@ app.post("/api/draft/update", (req, res) => {
   const summary = req.body.summary
   const slug = req.body.slug
   const newContent = req.body.content
+  const imageUrl = req.body.imageUrl
   const sql =
-    "UPDATE drafts SET content = ?, title = ?, summary = ?, slug = ? WHERE id = ?;"
-  db.query(sql, [newContent, title, summary, slug, id], (err, result) => {
-    if (err) console.error(err)
-    res.send(result)
-  })
+    "UPDATE drafts SET content = ?, title = ?, summary = ?, slug = ?, imageUrl = ? WHERE id = ?;"
+  db.query(
+    sql,
+    [newContent, title, summary, slug, imageUrl, id],
+    (err, result) => {
+      if (err) console.error(err)
+      res.send(result)
+    }
+  )
 })
 
 const PORT = 3001
