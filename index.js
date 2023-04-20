@@ -183,6 +183,26 @@ app.post("/api/draft/update", (req, res) => {
   )
 })
 
+app.get("/api/next/:slug", (req, res) => {
+  const slug = req.params.slug
+  const sql =
+    "SELECT slug FROM posts where id = (SELECT max(id) FROM posts WHERE id < (SELECT id FROM posts WHERE slug = ?));"
+  db.query(sql, [slug], (err, result) => {
+    if (err) console.error(err)
+    res.send(result)
+  })
+})
+
+app.get("/api/prev/:slug", (req, res) => {
+  const slug = req.params.slug
+  const sql =
+    "SELECT slug FROM posts where id = (SELECT min(id) FROM posts WHERE id > (SELECT id FROM posts WHERE slug = ?));"
+  db.query(sql, [slug], (err, result) => {
+    if (err) console.error(err)
+    res.send(result)
+  })
+})
+
 const PORT = 3001
 
 app.listen(process.env.PORT || PORT, () => {
