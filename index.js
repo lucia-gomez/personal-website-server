@@ -260,20 +260,20 @@ const mailjet = Mailjet.connect(
 //     })
 // })
 
-// app.get("/api/email/subscribers", (req, res) => {
-//   const mailjetRequest = mailjet
-//     .get("contactslist", {
-//       version: "v3",
-//       // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
-//     })
-//     .id(10308929)
-//     .request()
-//   mailjetRequest
-//     .then(result => {
-//       res.send(result.body)
-//     })
-//     .catch(err => console.error(err))
-// })
+app.get("/api/email/subscribers", (req, res) => {
+  const mailjetRequest = mailjet
+    .get("contactslist", {
+      version: "v3",
+      // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
+    })
+    .id(10308929)
+    .request()
+  mailjetRequest
+    .then(result => {
+      res.send(result.body)
+    })
+    .catch(err => console.error(err))
+})
 
 const PORT = 3001
 
