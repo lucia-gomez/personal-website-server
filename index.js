@@ -207,14 +207,7 @@ app.get("/api/prev/:slug", (req, res) => {
 /************* MAILJET *************/
 const mailjet = Mailjet.apiConnect(
   process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE,
-  {
-    proxy: {
-      protocol: "https",
-      host: "https://peaceful-stream-10554.herokuapp.com/",
-      port: 8080,
-    },
-  }
+  process.env.MJ_APIKEY_PRIVATE
 )
 
 app.post("/api/email/test", (req, res) => {
@@ -267,7 +260,7 @@ app.get("/api/email/subscribers", (req, res) => {
   const mailjetRequest = mailjet
     .get("contactslist", {
       version: "v3",
-      proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
+      // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
     })
     .id(10308929)
     .request()
