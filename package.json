@@ -16,6 +16,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.17.1",
     "mysql": "^2.18.1",
+    "node-mailjet": "^6.0.2",
     "nodemon": "^2.0.10"
   }
 }
