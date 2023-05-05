@@ -214,51 +214,51 @@ const mailjet = Mailjet.connect(
 //   process.env.MJ_APIKEY_PRIVATE
 // )
 
-// app.post("/api/email/test", (req, res) => {
-//   const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
-//     Messages: [
-//       {
-//         From: {
-//           Email: "lucia@lucia-gomez.dev",
-//           Name: "Lucia Gomez",
-//         },
-//         To: [
-//           {
-//             Email: "ilg7@cornell.edu",
-//           },
-//         ],
-//         Subject: "My first Mailjet Email!",
-//         HTMLPart:
-//           '<h3>Dear passenger 1, welcome to <a href="https://www.mailjet.com/">Mailjet</a>!</h3><br />May the delivery force be with you!',
-//       },
-//     ],
-//   })
-//   res.send(mailjetRequest)
-// })
+app.post("/api/email/test", (req, res) => {
+  const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
+    Messages: [
+      {
+        From: {
+          Email: "lucia@lucia-gomez.dev",
+          Name: "Lucia Gomez",
+        },
+        To: [
+          {
+            Email: "ilg7@cornell.edu",
+          },
+        ],
+        Subject: "My first Mailjet Email!",
+        HTMLPart:
+          '<h3>Dear passenger 1, welcome to <a href="https://www.mailjet.com/">Mailjet</a>!</h3><br />May the delivery force be with you!',
+      },
+    ],
+  })
+  res.send(mailjetRequest)
+})
 
-// app.post("/api/email/subscribe", (req, res) => {
-//   const email = req.body.email
-//   fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
-//     method: "POST",
-//     mode: "cors",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ Email: email, Fields: [] }),
-//   })
-//     .then(result => {
-//       if (!result.ok) {
-//         res.status(400)
-//         res.send("error")
-//       } else {
-//         res.send(result.body)
-//       }
-//     })
-//     .catch(err => {
-//       console.error(err)
-//       res.status(400)
-//     })
-// })
+app.post("/api/email/subscribe", (req, res) => {
+  const email = req.body.email
+  fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
+    method: "POST",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ Email: email, Fields: [] }),
+  })
+    .then(result => {
+      if (!result.ok) {
+        res.status(400)
+        res.send("error")
+      } else {
+        res.send(result.body)
+      }
+    })
+    .catch(err => {
+      console.error(err)
+      res.status(400)
+    })
+})
 
 app.get("/api/email/subscribers", (req, res) => {
   const mailjetRequest = mailjet
