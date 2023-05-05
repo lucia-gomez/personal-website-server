@@ -207,7 +207,14 @@ app.get("/api/prev/:slug", (req, res) => {
 /************* MAILJET *************/
 const mailjet = Mailjet.apiConnect(
   process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
+  process.env.MJ_APIKEY_PRIVATE,
+  {
+    proxy: {
+      protocol: "https",
+      host: "https://peaceful-stream-10554.herokuapp.com/",
+      port: 8080,
+    },
+  }
 )
 
 app.post("/api/email/test", (req, res) => {
