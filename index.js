@@ -265,7 +265,10 @@ app.post("/api/email/subscribe", (req, res) => {
 
 app.get("/api/email/subscribers", (req, res) => {
   const mailjetRequest = mailjet
-    .get("contactslist", { version: "v3" })
+    .get("contactslist", {
+      version: "v3",
+      proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
+    })
     .id(10308929)
     .request()
   mailjetRequest
