@@ -234,13 +234,13 @@ app.post("/api/email/test", (req, res) => {
 
 app.post("/api/email/subscribe", (req, res) => {
   const email = req.body.email
-  fetch("https://0r72l.mjt.lu/wgt/0r72l/zgu/subscribe?c=2ce8ce67", {
+  fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
     method: "POST",
     mode: "cors",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email: email }),
+    body: JSON.stringify({ Email: email, Fields: [] }),
   })
     .then(result => {
       if (!result.ok) {
