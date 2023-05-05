@@ -3,7 +3,7 @@ const mysql = require("mysql")
 const bodyParser = require("body-parser")
 const cors = require("cors")
 const dotenv = require("dotenv")
-const Mailjet = require("node-mailjet")
+// const Mailjet = require("node-mailjet")
 
 dotenv.config()
 const app = express()
@@ -205,71 +205,71 @@ app.get("/api/prev/:slug", (req, res) => {
 })
 
 /************* MAILJET *************/
-const mailjet = Mailjet.apiConnect(
-  process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
-)
+// const mailjet = Mailjet.apiConnect(
+//   process.env.MJ_APIKEY_PUBLIC,
+//   process.env.MJ_APIKEY_PRIVATE
+// )
 
-app.post("/api/email/test", (req, res) => {
-  const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
-    Messages: [
-      {
-        From: {
-          Email: "lucia@lucia-gomez.dev",
-          Name: "Lucia Gomez",
-        },
-        To: [
-          {
-            Email: "ilg7@cornell.edu",
-          },
-        ],
-        Subject: "My first Mailjet Email!",
-        HTMLPart:
-          '<h3>Dear passenger 1, welcome to <a href="https://www.mailjet.com/">Mailjet</a>!</h3><br />May the delivery force be with you!',
-      },
-    ],
-  })
-  res.send(mailjetRequest)
-})
+// app.post("/api/email/test", (req, res) => {
+//   const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
+//     Messages: [
+//       {
+//         From: {
+//           Email: "lucia@lucia-gomez.dev",
+//           Name: "Lucia Gomez",
+//         },
+//         To: [
+//           {
+//             Email: "ilg7@cornell.edu",
+//           },
+//         ],
+//         Subject: "My first Mailjet Email!",
+//         HTMLPart:
+//           '<h3>Dear passenger 1, welcome to <a href="https://www.mailjet.com/">Mailjet</a>!</h3><br />May the delivery force be with you!',
+//       },
+//     ],
+//   })
+//   res.send(mailjetRequest)
+// })
 
-app.post("/api/email/subscribe", (req, res) => {
-  const email = req.body.email
-  fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ Email: email, Fields: [] }),
-  })
-    .then(result => {
-      if (!result.ok) {
-        res.status(400)
-        res.send("error")
-      } else {
-        res.send(result.body)
-      }
-    })
-    .catch(err => {
-      console.error(err)
-      res.status(400)
-    })
-})
+// app.post("/api/email/subscribe", (req, res) => {
+//   const email = req.body.email
+//   fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
+//     method: "POST",
+//     mode: "cors",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({ Email: email, Fields: [] }),
+//   })
+//     .then(result => {
+//       if (!result.ok) {
+//         res.status(400)
+//         res.send("error")
+//       } else {
+//         res.send(result.body)
+//       }
+//     })
+//     .catch(err => {
+//       console.error(err)
+//       res.status(400)
+//     })
+// })
 
-app.get("/api/email/subscribers", (req, res) => {
-  const mailjetRequest = mailjet
-    .get("contactslist", {
-      version: "v3",
-      // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
-    })
-    .id(10308929)
-    .request()
-  mailjetRequest
-    .then(result => {
-      res.send(result.body)
-    })
-    .catch(err => console.error(err))
-})
+// app.get("/api/email/subscribers", (req, res) => {
+//   const mailjetRequest = mailjet
+//     .get("contactslist", {
+//       version: "v3",
+//       // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
+//     })
+//     .id(10308929)
+//     .request()
+//   mailjetRequest
+//     .then(result => {
+//       res.send(result.body)
+//     })
+//     .catch(err => console.error(err))
+// })
 
 const PORT = 3001
 
