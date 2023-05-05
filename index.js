@@ -3,7 +3,7 @@ const mysql = require("mysql")
 const bodyParser = require("body-parser")
 const cors = require("cors")
 const dotenv = require("dotenv")
-// const Mailjet = require("node-mailjet")
+const Mailjet = require("node-mailjet")
 
 dotenv.config()
 const app = express()
@@ -205,10 +205,10 @@ app.get("/api/prev/:slug", (req, res) => {
 })
 
 /************* MAILJET *************/
-// const mailjet = Mailjet.apiConnect(
-//   process.env.MJ_APIKEY_PUBLIC,
-//   process.env.MJ_APIKEY_PRIVATE
-// )
+const mailjet = Mailjet.apiConnect(
+  process.env.MJ_APIKEY_PUBLIC,
+  process.env.MJ_APIKEY_PRIVATE
+)
 
 // app.post("/api/email/test", (req, res) => {
 //   const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
