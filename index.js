@@ -277,7 +277,7 @@ app.post("/api/email/sendTest", (req, res) => {
   const subject = req.body.subject
   const content = req.body.content
 
-  const sqlContacts = "SELECT email FROM subscribersTest;"
+  const sqlContacts = "SELECT email FROM subscriberstest;"
   db.query(sqlContacts, (err, result) => {
     if (err) {
       console.error(err)
@@ -385,11 +385,21 @@ app.delete("/api/email/unsubscribe/:emailHash", (req, res) => {
   })
 })
 
-app.get("/api/email/subscriberCount", (_, res) => {
-  const sql = "SELECT COUNT(*) FROM subscribers;"
+app.get("/api/email/subscribers/:tableName", (req, res) => {
+  const tableName = req.params.tableName
+  if (tableName == null) {
+    res.status(400)
+    res.send(JSON.stringify({ error: "Undefined table name" }))
+    return
+  }
+
+  const sql =
+    tableName === "subscribers"
+      ? "SELECT * FROM subscribers;"
+      : "SELECT * FROM subscriberstest;"
   db.query(sql, (err, result) => {
     if (err) console.error(err)
-    res.send(JSON.stringify(result[0]["COUNT(*)"]))
+    res.send(result)
   })
 })
 
