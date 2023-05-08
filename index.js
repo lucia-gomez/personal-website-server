@@ -1,9 +1,11 @@
-const express = require("express")
-const mysql = require("mysql")
 const bodyParser = require("body-parser")
 const cors = require("cors")
+const CryptoJS = require("crypto-js")
 const dotenv = require("dotenv")
+const express = require("express")
+const fs = require("fs")
 const Mailjet = require("node-mailjet")
+const mysql = require("mysql")
 
 dotenv.config()
 const app = express()
@@ -209,12 +211,115 @@ const mailjet = Mailjet.connect(
   process.env.MJ_APIKEY_PUBLIC,
   process.env.MJ_APIKEY_PRIVATE
 )
-// const mailjet = Mailjet.apiConnect(
-//   process.env.MJ_APIKEY_PUBLIC,
-//   process.env.MJ_APIKEY_PRIVATE
-// )
 
-app.post("/api/email/test", (req, res) => {
+function isValidEmail(email) {
+  const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
+  return regex.test(email)
+}
+
+function hashEmail(email) {
+  return encodeURIComponent(
+    CryptoJS.AES.encrypt(email, process.env.ENCRYPT_KEY)
+  )
+}
+
+function unhashEmail(emailHash) {
+  const decodedHash = decodeURIComponent(emailHash)
+  const emailBytes = CryptoJS.AES.decrypt(decodedHash, process.env.ENCRYPT_KEY)
+  return emailBytes.toString(CryptoJS.enc.Utf8)
+}
+
+function sendToList(contacts, subject, content, res) {
+  const unsubscribe =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/unsubscribe/"
+      : "https://lucia-gomez.dev/unsubscribe/"
+  const newsletterTemplate = fs.readFileSync(
+    "./newsletterTemplate.html",
+    "utf8"
+  )
+  const emails = contacts
+    .map(contact => contact.email)
+    .filter(email => email != null && email.trim().length > 0)
+
+  Promise.all(
+    emails.map(email =>
+      mailjet.post("send", { version: "v3.1" }).request({
+        Messages: [
+          {
+            From: {
+              Email: "lucia@lucia-gomez.dev",
+              Name: "Lucia Gomez",
+            },
+            To: [
+              {
+                Email: email,
+              },
+            ],
+            Subject: subject,
+            TemplateLanguage: true,
+            HTMLPart: newsletterTemplate,
+            Variables: {
+              title: subject,
+              custom_unsubscribe: unsubscribe + hashEmail(email),
+              content,
+            },
+          },
+        ],
+      })
+    )
+  )
+    .then(result => res.send(result))
+    .catch(err => console.error(err))
+}
+
+app.post("/api/email/sendTest", (req, res) => {
+  const subject = req.body.subject
+  const content = req.body.content
+
+  const sqlContacts = "SELECT email FROM subscribersTest;"
+  db.query(sqlContacts, (err, result) => {
+    if (err) {
+      console.error(err)
+      res.status(400)
+      res.send(err)
+    } else {
+      sendToList(result, subject, content, res)
+    }
+  })
+})
+
+app.post("/api/email/send", (req, res) => {
+  const subject = req.body.subject
+  const content = req.body.content
+
+  const sqlContacts = "SELECT email FROM subscribers;"
+  db.query(sqlContacts, (err, result) => {
+    if (err) {
+      console.error(err)
+      res.status(400)
+      res.send(err)
+    } else {
+      sendToList(result, subject, content, res)
+    }
+  })
+})
+
+app.post("/api/email/confirm", (req, res) => {
+  const email = req.body.email
+  if (!isValidEmail(email)) {
+    res.status(400)
+    res.send(JSON.stringify({ error: "Error subscribing, invalid email" }))
+    return
+  }
+
+  const confLink =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/confirmation/"
+      : "https://lucia-gomez.dev/confirmation/"
+  const emailHash = hashEmail(email)
+  const confTemplate = fs.readFileSync("./confirmationTemplate.html", "utf8")
+
   const mailjetRequest = mailjet.post("send", { version: "v3.1" }).request({
     Messages: [
       {
@@ -224,55 +329,68 @@ app.post("/api/email/test", (req, res) => {
         },
         To: [
           {
-            Email: "ilg7@cornell.edu",
+            Email: email,
           },
         ],
-        Subject: "My first Mailjet Email!",
-        HTMLPart:
-          '<h3>Dear passenger 1, welcome to <a href="https://www.mailjet.com/">Mailjet</a>!</h3><br />May the delivery force be with you!',
+        Subject: "Confirm Subscription - lucia-gomez.dev",
+        TemplateLanguage: true,
+        HTMLPart: confTemplate,
+        Variables: {
+          confirmation_link: confLink + emailHash,
+        },
       },
     ],
   })
   res.send(mailjetRequest)
 })
 
-app.post("/api/email/subscribe", (req, res) => {
-  const email = req.body.email
-  fetch("https://0r72l.mjt.lu/wgt/0r72l/z96/subscribe?c=149a033f", {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ Email: email, Fields: [] }),
-  })
-    .then(result => {
-      if (!result.ok) {
-        res.status(400)
-        res.send("error")
+app.post("/api/email/subscribe/:emailHash", (req, res) => {
+  const emailHash = req.params.emailHash
+  const email = unhashEmail(emailHash)
+  if (!isValidEmail(email)) {
+    res.status(400)
+    res.send(JSON.stringify({ error: "Error subscribing, invalid email" }))
+    return
+  }
+
+  const dateAdded = new Date().toISOString().slice(0, 19).replace("T", " ")
+
+  const sql = "INSERT INTO subscribers (email, dateAdded) VALUES (?, ?);"
+  db.query(sql, [email, dateAdded], (err, result) => {
+    if (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        console.error(err)
+        res.status(409)
       } else {
-        res.send(result.body)
+        res.status(400)
       }
-    })
-    .catch(err => {
-      console.error(err)
-      res.status(400)
-    })
+    }
+    res.send(result)
+  })
 })
 
-app.get("/api/email/subscribers", (req, res) => {
-  const mailjetRequest = mailjet
-    .get("contactslist", {
-      version: "v3",
-      // proxyUrl: "https://peaceful-stream-10554.herokuapp.com",
-    })
-    .id(10308929)
-    .request()
-  mailjetRequest
-    .then(result => {
-      res.send(result.body)
-    })
-    .catch(err => console.error(err))
+app.delete("/api/email/unsubscribe/:emailHash", (req, res) => {
+  const emailHash = req.params.emailHash
+  const email = unhashEmail(emailHash)
+  if (!isValidEmail(email)) {
+    res.status(400)
+    res.send(JSON.stringify({ error: "Error subscribing, invalid email" }))
+    return
+  }
+
+  const sql = "DELETE FROM subscribers WHERE email = ?;"
+  db.query(sql, [email], (err, result) => {
+    if (err) console.error(err)
+    res.send(result)
+  })
+})
+
+app.get("/api/email/subscriberCount", (_, res) => {
+  const sql = "SELECT COUNT(*) FROM subscribers;"
+  db.query(sql, (err, result) => {
+    if (err) console.error(err)
+    res.send(JSON.stringify(result[0]["COUNT(*)"]))
+  })
 })
 
 const PORT = 3001
