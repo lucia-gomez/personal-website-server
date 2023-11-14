@@ -19,7 +19,7 @@ const db = mysql.createPool({
 	password:
 		process.env.NODE_ENV === "development"
 			? process.env.REACT_APP_DB_PASSWORD_DEV
-			: process.env.REACT_APP_DB_PASSWORD_PROD,
+			: "2271ea8150627a5",
 	database:
 		process.env.NODE_ENV === "development"
 			? "WebsiteBlog"
