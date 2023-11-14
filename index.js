@@ -10,6 +10,12 @@ const mysql = require("mysql");
 dotenv.config();
 const app = express();
 
+console.log(
+	process.env.NODE_ENV === "development"
+		? process.env.REACT_APP_DB_PASSWORD_DEV
+		: process.env.REACT_APP_DB_PASSWORD_PROD
+);
+
 const db = mysql.createPool({
 	host:
 		process.env.NODE_ENV === "development"
@@ -19,7 +25,7 @@ const db = mysql.createPool({
 	password:
 		process.env.NODE_ENV === "development"
 			? process.env.REACT_APP_DB_PASSWORD_DEV
-			: "2271ea8150627a5",
+			: process.env.REACT_APP_DB_PASSWORD_PROD,
 	database:
 		process.env.NODE_ENV === "development"
 			? "WebsiteBlog"
