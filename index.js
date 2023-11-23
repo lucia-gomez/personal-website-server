@@ -39,8 +39,6 @@ app.use(cors(), function (req, res, next) {
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-console.log(process.env.REACT_APP_IMAGEKIT_PRIVATE)
-
 const imagekit = new ImageKit({
   publicKey: "public_CJFqG4/4bWXjKN1kfmDaT7UlKC4=",
   privateKey: process.env.REACT_APP_IMAGEKIT_PRIVATE,
@@ -232,8 +230,8 @@ app.get("/api/next/:slug", (req, res) => {
   PostsModel.findOne({ slug })
     .then(doc => {
       if (doc) {
-        PostsModel.findOne({ _id: { $gt: doc._id } })
-          .sort({ _id: 1 })
+        PostsModel.findOne({ _id: { $lt: doc._id } })
+          .sort({ _id: -1 })
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
@@ -256,8 +254,8 @@ app.get("/api/prev/:slug", (req, res) => {
   PostsModel.findOne({ slug })
     .then(doc => {
       if (doc) {
-        PostsModel.findOne({ _id: { $lt: doc._id } })
-          .sort({ _id: -1 })
+        PostsModel.findOne({ _id: { $gt: doc._id } })
+          .sort({ _id: 1 })
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
