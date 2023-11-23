@@ -4,6 +4,7 @@ const CryptoJS = require("crypto-js")
 const dotenv = require("dotenv")
 const express = require("express")
 const fs = require("fs")
+const ImageKit = require("imagekit")
 const Mailjet = require("node-mailjet")
 const {
   connectDB,
@@ -37,6 +38,12 @@ app.use(cors(), function (req, res, next) {
 })
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+const imagekit = new ImageKit({
+  publicKey: "public_CJFqG4/4bWXjKN1kfmDaT7UlKC4=",
+  privateKey: process.env.REACT_APP_IMAGEKIT_PRIVATE,
+  urlEndpoint: "https://ik.imagekit.io/5xtlzx2c3y",
+})
 
 app.get("/api/get", (req, res) => {
   PostsModel.find({})
@@ -460,6 +467,19 @@ app.get("/api/email/subscribers/:tableName", (req, res) => {
       res.status(400)
       res.send(e)
     })
+})
+
+/************* IMAGEKIT.IO *************/
+app.post("/api/image", (req, res) => {
+  const path = req.body.path
+  imagekit.listFiles({ path }, function (error, result) {
+    if (error) {
+      console.log(error)
+      res.send(error)
+    } else {
+      res.send(result)
+    }
+  })
 })
 
 const PORT = 3001
