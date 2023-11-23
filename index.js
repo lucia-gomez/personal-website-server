@@ -39,6 +39,8 @@ app.use(cors(), function (req, res, next) {
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+console.log(process.env.REACT_APP_IMAGEKIT_PRIVATE)
+
 const imagekit = new ImageKit({
   publicKey: "public_CJFqG4/4bWXjKN1kfmDaT7UlKC4=",
   privateKey: process.env.REACT_APP_IMAGEKIT_PRIVATE,
