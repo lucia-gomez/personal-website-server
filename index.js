@@ -39,9 +39,10 @@ app.use(cors(), function (req, res, next) {
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+console.log(process.env.IMAGEKIT_PRIVATE)
 const imagekit = new ImageKit({
   publicKey: "public_CJFqG4/4bWXjKN1kfmDaT7UlKC4=",
-  privateKey: process.env.REACT_APP_IMAGEKIT_PRIVATE,
+  privateKey: process.env.IMAGEKIT_PRIVATE,
   urlEndpoint: "https://ik.imagekit.io/5xtlzx2c3y",
 })
 
@@ -472,6 +473,8 @@ app.get("/api/email/subscribers/:tableName", (req, res) => {
 /************* IMAGEKIT.IO *************/
 app.post("/api/image", (req, res) => {
   const path = req.body.path
+  console.log(path)
+  console.log(process.env.IMAGEKIT_PRIVATE)
   imagekit.listFiles({ path }, function (error, result) {
     if (error) {
       console.log(error)
