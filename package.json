@@ -23,5 +23,8 @@
     "node-mailjet": "^3.3.7",
     "nodemon": "^2.0.10",
     "npm": "^9.6.6"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.1532.0"
   }
 }

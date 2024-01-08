@@ -24,4 +24,4 @@ echo "Starting mongodump at $(date)"
 mongodump --uri $MONGO_URI --out $BACKUP_DIR/$TIMESTAMP
 echo "mongodump completed at $(date)"
 
-aws s3 cp $BACKUP_DIR/$TIMESTAMP s3://lucia-gomez-db-backup/$TIMESTAMP --recursive --profile $AWS_PROFILE --region us-east-1
+node awsUpload.js $BACKUP_DIR/$TIMESTAMP
