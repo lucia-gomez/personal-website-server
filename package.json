@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1532.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
@@ -23,8 +24,5 @@
     "node-mailjet": "^3.3.7",
     "nodemon": "^2.0.10",
     "npm": "^9.6.6"
-  },
-  "devDependencies": {
-    "aws-sdk": "^2.1532.0"
   }
 }
