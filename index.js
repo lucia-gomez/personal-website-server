@@ -6,19 +6,23 @@ const express = require("express")
 const fs = require("fs")
 const ImageKit = require("imagekit")
 const Mailjet = require("node-mailjet")
+const { connectDB, getId, getDatbaseName } = require("./db")
+
+const PostsModel = require("./models/postModel")
+const DraftsModel = require("./models/draftModel")
 const {
-  connectDB,
-  getId,
-  DraftsModel,
-  PostsModel,
   SubscribersModel,
   SubscribersTestModel,
-} = require("./db")
+} = require("./models/subscriberModel")
 
 dotenv.config()
 const app = express()
-connectDB()
+if (process.env.NODE_ENV != "testBackend") {
+  /* istanbul ignore next */
+  connectDB()
+}
 
+/* istanbul ignore next */
 app.use(cors(), function (req, res, next) {
   const allowedOrigins = [
     "https://lucia-gomez.dev",
@@ -45,18 +49,20 @@ const imagekit = new ImageKit({
   urlEndpoint: "https://ik.imagekit.io/5xtlzx2c3y",
 })
 
-app.get("/api/get", (req, res) => {
+app.get("/api/posts", (req, res) => {
   PostsModel.find({})
     .then(docs => {
       res.send(docs)
     })
     .catch(e => {
-      res.status(400)
-      console.error(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.get("/api/get/:slug", (req, res) => {
+app.get("/api/posts/:slug", (req, res) => {
   const slug = req.params.slug
   PostsModel.findOne({ slug })
     .then(doc => {
@@ -67,12 +73,14 @@ app.get("/api/get/:slug", (req, res) => {
       }
     })
     .catch(e => {
-      res.status(400)
-      console.error(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/create", (req, res) => {
+app.post("/api/posts", (req, res) => {
   const datetime = req.body.datetime
   const dateString = req.body.dateString
   const title = req.body.title
@@ -94,96 +102,116 @@ app.post("/api/create", (req, res) => {
   })
     .then(result => res.send(result))
     .catch(e => {
-      res.status(400)
-      console.error(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/like", (req, res) => {
+app.put("/api/posts/likes", (req, res) => {
   const id = req.body.id
-  PostsModel.updateOne({ _id: id }, { $inc: { likes: 1 } })
+  const mode = req.body.mode
+
+  let op, sel
+  switch (mode) {
+    case -1: // unlike
+      sel = { _id: id, likes: { $gt: 0 } }
+      op = { $inc: { likes: -1 } }
+      break
+    case 0: // reset likes
+      sel = { _id: id }
+      op = { $set: { likes: 0 } }
+      break
+    case 1:
+      sel = { _id: id }
+      op = { $inc: { likes: 1 } }
+      break
+  }
+
+  if (op == null || sel == null) {
+    res
+      .status(400)
+      .json({
+        error:
+          "Invalid mode number: should be -1 to unlike, 1 to like, or 0 to reset likes",
+      })
+      .send()
+  }
+
+  PostsModel.updateOne(sel, op)
     .then(result => {
       res.send(result)
     })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
+    .catch(e => {
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/unlike", (req, res) => {
-  const id = req.body.id
-  PostsModel.updateOne({ _id: id }, { $inc: { likes: -1 } })
-    .then(result => {
-      res.send(result)
-    })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
-    })
-})
-
-app.post("/api/likes/reset", (req, res) => {
-  const id = req.body.id
-  PostsModel.updateOne({ _id: id }, { $set: { likes: 0 } })
-    .then(result => {
-      res.send(result)
-    })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
-    })
-})
-
-app.delete("/api/delete/:id", (req, res) => {
+app.delete("/api/posts/:id", (req, res) => {
   const id = req.params.id
   PostsModel.deleteOne({ _id: id })
     .then(result => {
+      if (result.deletedCount === 0) {
+        return res.status(400).send("Post not found or already deleted.")
+      }
+
       res.send(result)
     })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
+    .catch(e => {
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/update", (req, res) => {
-  const id = req.body.id
+app.put("/api/posts/:id", (req, res) => {
+  const id = req.params.id
   const title = req.body.title
   const summary = req.body.summary
   const content = req.body.content
   const dateString = req.body.dateString
   const imageUrl = req.body.imageUrl
+  const slug = req.body.slug
   PostsModel.updateOne(
     { _id: id },
-    { $set: { title, summary, content, dateString, imageUrl } }
+    { $set: { title, summary, content, dateString, imageUrl, slug } }
   )
     .then(result => {
       res.send(result)
     })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
+    .catch(e => {
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.get("/api/draft/get", (req, res) => {
+app.get("/api/drafts", (req, res) => {
   DraftsModel.find({})
     .then(docs => {
       res.send(docs)
     })
     .catch(e => {
-      res.status(400)
-      console.error(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/draft/create", (req, res) => {
+app.post("/api/drafts", (req, res) => {
   const title = req.body.title
   const summary = req.body.summary
   const content = req.body.content
   const slug = req.body.slug
   const imageUrl = req.body.imageUrl
+  const dateString = req.body.dateString
   DraftsModel.create({
     _id: getId(),
     title,
@@ -191,47 +219,55 @@ app.post("/api/draft/create", (req, res) => {
     content,
     slug,
     imageUrl,
+    dateString,
   })
     .then(result => {
       res.send(result)
     })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
+    .catch(e => {
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.delete("/api/draft/:id", (req, res) => {
+app.delete("/api/drafts/:id", (req, res) => {
   const id = req.params.id
   DraftsModel.deleteOne({ _id: id })
     .then(doc => res.send(doc))
     .catch(e => {
-      res.status(400)
-      console.error(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.post("/api/draft/update", (req, res) => {
-  const id = req.body.id
+app.put("/api/drafts/:id", (req, res) => {
+  const id = req.params.id
   const title = req.body.title
   const summary = req.body.summary
   const slug = req.body.slug
   const content = req.body.content
   const imageUrl = req.body.imageUrl
+  const dateString = req.body.dateString
   DraftsModel.updateOne(
     { _id: id },
-    { $set: { title, summary, slug, content, imageUrl } }
+    { $set: { title, summary, slug, content, imageUrl, dateString } }
   )
     .then(result => {
       res.send(result)
     })
-    .catch(error => {
-      console.error(error)
-      res.status(400)
+    .catch(e => {
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.get("/api/next/:slug", (req, res) => {
+app.get("/api/posts/next/:slug", (req, res) => {
   const slug = req.params.slug
   PostsModel.findOne({ slug })
     .then(doc => {
@@ -241,20 +277,22 @@ app.get("/api/next/:slug", (req, res) => {
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
-            res.status(400)
+            res.status(500).send()
           })
       } else {
         console.error("Couldn't find doc with given slug")
-        res.status(200).json(null)
+        res.status(404).send("Couldn't find doc with given slug")
       }
     })
     .catch(e => {
-      console.error(e)
-      res.status(400)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.get("/api/prev/:slug", (req, res) => {
+app.get("/api/posts/prev/:slug", (req, res) => {
   const slug = req.params.slug
   PostsModel.findOne({ slug })
     .then(doc => {
@@ -264,18 +302,76 @@ app.get("/api/prev/:slug", (req, res) => {
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
-            res.status(400)
+            res.status(500).send()
           })
       } else {
         console.error("Couldn't find doc with given slug")
-        res.status(200).json(null)
+        res.status(404).send("Couldn't find doc with given slug")
       }
     })
     .catch(e => {
-      console.error(e)
-      res.status(400)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
+
+/************* TEST DATA *************/
+if (
+  process.env.NODE_ENV === "test" &&
+  getDatbaseName() === "personalWebsiteTest"
+) {
+  // Create a test post with placeholder data
+  app.post("/api/test/posts", (req, res) => {
+    const count = req.body.count
+
+    const datetime = new Date().toISOString().slice(0, 19).replace("T", " ")
+    const dateString = `1/${10 - count}/2024 12:00:00`
+    const title = "[Test] Title " + count
+    const summary = "This is a test summary"
+    const content = "This is test content"
+    const slug = "test-" + count
+    const imageUrl =
+      "https://ik.imagekit.io/5xtlzx2c3y/website/blog/placeholder.jpeg"
+
+    PostsModel.create({
+      _id: getId(),
+      title,
+      summary,
+      content,
+      slug,
+      imageUrl,
+      dateString,
+      date: datetime,
+      likes: 0,
+    })
+      .then(result => res.send(result))
+      .catch(e => {
+        res
+          .status(500)
+          .json({ error: "Internal Server Error" + e })
+          .send()
+      })
+  })
+
+  // Clear all test data created from a test run
+  app.delete("/api/test", (req, res) => {
+    Promise.all([
+      PostsModel.deleteMany({}),
+      DraftsModel.deleteMany({}),
+      SubscribersModel.deleteMany({}),
+      SubscribersTestModel.deleteMany({}),
+    ])
+      .then(result => res.send(result))
+      .catch(e => {
+        res
+          .status(500)
+          .json({ error: "Internal Server Error" + e })
+          .send()
+      })
+  })
+}
 
 /************* MAILJET *************/
 const mailjet = Mailjet.connect(
@@ -341,7 +437,12 @@ function sendToList(contacts, subject, content, res) {
     )
   )
     .then(result => res.send(result))
-    .catch(err => console.error(err))
+    .catch(e =>
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
+    )
 }
 
 app.post("/api/email/sendTest", (req, res) => {
@@ -352,9 +453,10 @@ app.post("/api/email/sendTest", (req, res) => {
       sendToList(contacts, subject, content, res)
     })
     .catch(e => {
-      console.error(e)
-      res.status(400)
-      res.send(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
@@ -367,9 +469,10 @@ app.post("/api/email/send", (req, res) => {
       sendToList(contacts, subject, content, res)
     })
     .catch(e => {
-      console.error(e)
-      res.status(400)
-      res.send(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
@@ -426,13 +529,14 @@ app.post("/api/email/subscribe/:emailHash", (req, res) => {
   SubscribersModel.create({ _id: getId(), email, dateAdded })
     .then(result => res.send(result))
     .catch(error => {
-      console.error(error)
       if (error.code === 11000 || error.code === 11001) {
         res.status(409)
         res.send("Error: email already subscribed")
       } else {
-        res.status(400)
-        res.send("Error: can't add email")
+        res
+          .status(500)
+          .json({ error: "Internal Server Error" + error })
+          .send()
       }
     })
 })
@@ -449,31 +553,38 @@ app.delete("/api/email/unsubscribe/:emailHash", (req, res) => {
   SubscribersModel.deleteOne({ email })
     .then(result => res.send(result))
     .catch(e => {
-      res.status(400)
-      res.send(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
-app.get("/api/email/subscribers/:tableName", (req, res) => {
+app.get("/api/email/:tableName", (req, res) => {
   const tableName = req.params.tableName
-  if (tableName == null) {
-    res.status(400)
-    res.send(JSON.stringify({ error: "Undefined table name" }))
+  let model
+  if (tableName === "subscribers") {
+    model = SubscribersModel
+  } else if (tableName === "subscribersTest") {
+    model = SubscribersTestModel
+  } else {
+    res.status(400).json({ error: "Table not found" }).send()
     return
   }
 
-  const model =
-    tableName === "subscribers" ? SubscribersModel : SubscribersTestModel
   model
     .find({})
     .then(contacts => res.send(contacts))
     .catch(e => {
-      res.status(400)
-      res.send(e)
+      res
+        .status(500)
+        .json({ error: "Internal Server Error" + e })
+        .send()
     })
 })
 
 /************* IMAGEKIT.IO *************/
+/* istanbul ignore next */
 app.post("/api/image", (req, res) => {
   const path = req.body.path
   imagekit.listFiles({ path }, function (error, result) {
@@ -491,3 +602,5 @@ const PORT = 3001
 app.listen(process.env.PORT || PORT, () => {
   console.log("server is running")
 })
+
+module.exports = { app, hashEmail, mailjet }

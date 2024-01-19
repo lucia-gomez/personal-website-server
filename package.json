@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "startDev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:test": "NODE_ENV=test npm run startDev",
+    "test": "NODE_ENV=testBackend mocha --recursive --exit",
+    "coverage": "nyc --reporter=html npm run test",
     "copy": "cp -r ./* /Users/luciagomez/Desktop/projects/lucia-gomez-server"
   },
   "author": "",
@@ -23,5 +25,13 @@
     "node-mailjet": "^3.3.7",
     "nodemon": "^2.0.10",
     "npm": "^9.6.6"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.2.0",
+    "mongodb-memory-server": "^9.1.4",
+    "nyc": "^15.1.0",
+    "sinon": "^17.0.1"
   }
 }
