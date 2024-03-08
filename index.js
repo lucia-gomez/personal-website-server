@@ -267,7 +267,7 @@ app.put("/api/drafts/:id", (req, res) => {
     })
 })
 
-app.get("/api/posts/next/:slug", (req, res) => {
+app.get("/api/posts/prev/:slug", (req, res) => {
   const slug = req.params.slug
   PostsModel.findOne({ slug })
     .then(doc => {
@@ -292,7 +292,7 @@ app.get("/api/posts/next/:slug", (req, res) => {
     })
 })
 
-app.get("/api/posts/prev/:slug", (req, res) => {
+app.get("/api/posts/next/:slug", (req, res) => {
   const slug = req.params.slug
   PostsModel.findOne({ slug })
     .then(doc => {
