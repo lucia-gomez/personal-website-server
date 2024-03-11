@@ -4,6 +4,7 @@ const CryptoJS = require("crypto-js")
 const dotenv = require("dotenv")
 const express = require("express")
 const fs = require("fs")
+const https = require("https")
 const ImageKit = require("imagekit")
 const Mailjet = require("node-mailjet")
 const { connectDB, getId, getDatbaseName } = require("./db")
@@ -583,6 +584,22 @@ app.get("/api/email/:tableName", (req, res) => {
     })
 })
 
+app.post("/api/email/dns", (req, res) => {
+  const request = mailjet
+    .post("dns", { version: "v3" })
+    .id("lucia-gomez.dev")
+    .action("check")
+    .request()
+  request
+    .then(result => {
+      res.status(200).json(result.body.Data[0])
+    })
+    .catch(err => {
+      console.log(err.statusCode)
+      res.status(400).json({ error: err }).send()
+    })
+})
+
 /************* IMAGEKIT.IO *************/
 /* istanbul ignore next */
 app.post("/api/image", (req, res) => {
@@ -595,6 +612,46 @@ app.post("/api/image", (req, res) => {
       res.send(result)
     }
   })
+})
+
+/* istanbul ignore next */
+app.get("/api/imagekit/usage", (req, res) => {
+  const formatDate = date => date.toISOString().split("T")[0]
+  const endDate = formatDate(new Date()) // today
+  const startDate = formatDate(new Date(Date.now() - 864e5)) // yesterday
+
+  const url = `https://api.imagekit.io/v1/accounts/usage?startDate=${startDate}&endDate=${endDate}`
+
+  const httpRequest = https.request(
+    url,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:
+          "Basic " +
+          Buffer.from(process.env.IMAGEKIT_PRIVATE + ":").toString("base64"),
+      },
+    },
+    response => {
+      let responseData = ""
+
+      response.on("data", chunk => {
+        responseData += chunk
+      })
+
+      response.on("end", () => {
+        res.status(200).json(JSON.parse(responseData))
+      })
+    }
+  )
+
+  httpRequest.on("error", error => {
+    console.error("Error:", error.message)
+    res.status(500).json({ error: "Internal Server Error" })
+  })
+
+  httpRequest.end()
 })
 
 const PORT = 3001
