@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [[ -f .env ]]; then
-    source .env
+if [[ -f ../.env ]]; then
+    source ../.env
 fi
 
 ATLAS_USERNAME="admin"
@@ -11,7 +11,7 @@ ATLAS_DATABASE="personalWebsite"
 # Construct the MongoDB Atlas URI
 MONGO_URI="mongodb+srv://${ATLAS_USERNAME}:${REACT_APP_MONGO_PASSWORD}@${ATLAS_CLUSTER}/${ATLAS_DATABASE}"
 
-BACKUP_DIR=backup
+BACKUP_DIR=__output__
 
 # Create a timestamp for the backup folder
 TIMESTAMP=$(date +%Y%m%d%H%M%S)

@@ -2,7 +2,7 @@ const aws = require("aws-sdk")
 const fs = require("fs")
 const dotenv = require("dotenv")
 
-dotenv.config()
+dotenv.config({ path: "../.env" })
 
 const args = process.argv.slice(2)
 const dir = "./" + args[0] + "/personalWebsite/"
@@ -16,7 +16,7 @@ const s3 = new aws.S3({
 })
 
 const uploadFile = async (filePath, fileName) => {
-  console.log("uploading to s3...")
+  console.log(`Uploading ${fileName} to s3...`)
 
   // File
   const fileStream = fs.createReadStream(`${filePath}${fileName}`)
@@ -42,7 +42,14 @@ const uploadFile = async (filePath, fileName) => {
   })
 }
 
-// Send files
-uploadFile(dir, "posts.bson")
-uploadFile(dir, "subscribers.bson")
-uploadFile(dir, "drafts.bson")
+// upload all files in mongodump dir
+fs.readdir(dir, function (err, files) {
+  if (err) {
+    console.error("Could not read from directory " + dir, err)
+    process.exit(1)
+  }
+
+  files.forEach(file => {
+    uploadFile(dir, file)
+  })
+})
