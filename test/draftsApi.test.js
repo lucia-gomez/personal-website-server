@@ -1,6 +1,6 @@
 const chai = require("chai")
 const { expect } = chai
-const { app } = require("../index")
+const app = require("../index")
 const mongoose = require("mongoose")
 const { testSimulateMongoError } = require("./test")
 

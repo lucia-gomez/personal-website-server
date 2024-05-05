@@ -1,7 +1,7 @@
 const chai = require("chai")
 
 const { expect } = chai
-const { app } = require("../index")
+const app = require("../index")
 const mongoose = require("mongoose")
 const { testSimulateMongoError } = require("./test")
 
@@ -245,15 +245,15 @@ describe("Slug API Tests", () => {
   })
 
   it("get prev post by slug - has post", async () => {
-    // previous post back in time
-    const res = await chai.request(app).get("/api/posts/prev/" + slugs[0])
+    // newer post
+    const res = await chai.request(app).get("/api/posts/prev/" + slugs[1])
     expect(res).to.have.status(200)
     expect(res.body).to.not.deep.equal({})
-    expect(res.body.slug).to.equal(slugs[1])
+    expect(res.body.slug).to.equal(slugs[0])
   })
 
   it("get prev post by slug - no post", async () => {
-    const res = await chai.request(app).get("/api/posts/prev/" + slugs[2])
+    const res = await chai.request(app).get("/api/posts/prev/" + slugs[0])
     expect(res).to.have.status(200)
     expect(res.body).to.deep.equal({})
   })
@@ -269,15 +269,15 @@ describe("Slug API Tests", () => {
   })
 
   it("get next post by slug - has post", async () => {
-    // next post forward in time
-    const res = await chai.request(app).get("/api/posts/next/" + slugs[2])
+    // older post
+    const res = await chai.request(app).get("/api/posts/next/" + slugs[0])
     expect(res).to.have.status(200)
     expect(res.body).to.not.deep.equal({})
     expect(res.body.slug).to.equal(slugs[1])
   })
 
   it("get next post by slug - no post", async () => {
-    const res = await chai.request(app).get("/api/posts/next/" + slugs[0])
+    const res = await chai.request(app).get("/api/posts/next/" + slugs[2])
     expect(res).to.have.status(200)
     expect(res.body).to.deep.equal({})
   })

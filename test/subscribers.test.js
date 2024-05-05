@@ -1,10 +1,9 @@
 const chai = require("chai")
 const { expect } = chai
-const { app, hashEmail } = require("../index")
+const app = require("../index")
 const { testSimulateMongoError } = require("./test")
 const { getId } = require("../db")
-const sinon = require("sinon")
-const { mailjet } = require("../index")
+const { hashEmail } = require("../emailUtil")
 
 const {
   SubscribersModel,

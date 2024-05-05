@@ -2,7 +2,7 @@ const chai = require("chai")
 const chaiHttp = require("chai-http")
 const mongoose = require("mongoose")
 const sinon = require("sinon")
-const { mailjet } = require("../index")
+const { mailjet } = require("../routes/mailjetRoutes")
 const { MongoMemoryServer } = require("mongodb-memory-server")
 
 const { expect } = chai
