@@ -42,96 +42,96 @@ router.post("/", (req, res) => {
   })
 })
 
-router.post("/upload", upload.single("file"), async (req, res) => {
-  const originalName = req.file.originalname
-  const fileType = req.body.fileType
-  const imageKitFolder = req.body.imageKitFolder
+// router.post("/upload", upload.single("file"), async (req, res) => {
+//   const originalName = req.file.originalname
+//   const fileType = req.body.fileType
+//   const imageKitFolder = req.body.imageKitFolder
 
-  const [fileName, fileExtension] = splitFileNameAndExtension(originalName)
-  console.log(originalName, fileName, fileExtension, fileType)
+//   const [fileName, fileExtension] = splitFileNameAndExtension(originalName)
+//   console.log(originalName, fileName, fileExtension, fileType)
 
-  const compressionResult = await compressFile(
-    originalName,
-    fileExtension,
-    fileType
-  )
-  console.log("compressed", compressionResult)
+//   const compressionResult = await compressFile(
+//     originalName,
+//     fileExtension,
+//     fileType
+//   )
+//   console.log("compressed", compressionResult)
 
-  fs.readFile(compressionResult.outputFileName, (readErr, outputFile) => {
-    if (readErr) {
-      console.error(readErr)
-      res.status(500).send("Error reading compressed file:", readErr)
-    }
+//   fs.readFile(compressionResult.outputFileName, (readErr, outputFile) => {
+//     if (readErr) {
+//       console.error(readErr)
+//       res.status(500).send("Error reading compressed file:", readErr)
+//     }
 
-    imagekit
-      .upload({
-        file: outputFile,
-        fileName,
-        folder: imageKitFolder,
-        useUniqueFileName: false,
-      })
-      .then(uploadResult => {
-        res
-          .status(200)
-          .send({ imageKitResult: uploadResult, stats: compressionResult })
-      })
-      .catch(uploadErr => {
-        console.error(uploadErr)
-        res.status(500).send("Error uploading to ImageKit:", uploadErr)
-      })
-      .finally(() => {
-        fs.unlink(originalName, unlinkError => {
-          if (unlinkError) {
-            console.error(unlinkError)
-          }
-        })
-        fs.unlink(compressionResult.outputFileName, unlinkError => {
-          if (unlinkError) {
-            console.error(unlinkError)
-          }
-        })
-      })
-  })
-})
+//     imagekit
+//       .upload({
+//         file: outputFile,
+//         fileName,
+//         folder: imageKitFolder,
+//         useUniqueFileName: false,
+//       })
+//       .then(uploadResult => {
+//         res
+//           .status(200)
+//           .send({ imageKitResult: uploadResult, stats: compressionResult })
+//       })
+//       .catch(uploadErr => {
+//         console.error(uploadErr)
+//         res.status(500).send("Error uploading to ImageKit:", uploadErr)
+//       })
+//       .finally(() => {
+//         fs.unlink(originalName, unlinkError => {
+//           if (unlinkError) {
+//             console.error(unlinkError)
+//           }
+//         })
+//         fs.unlink(compressionResult.outputFileName, unlinkError => {
+//           if (unlinkError) {
+//             console.error(unlinkError)
+//           }
+//         })
+//       })
+//   })
+// })
 
-/* istanbul ignore next */
-router.get("/usage", (req, res) => {
-  const formatDate = date => date.toISOString().split("T")[0]
-  const endDate = formatDate(new Date()) // today
-  const startDate = formatDate(new Date(Date.now() - 864e5)) // yesterday
+// /* istanbul ignore next */
+// router.get("/usage", (req, res) => {
+//   const formatDate = date => date.toISOString().split("T")[0]
+//   const endDate = formatDate(new Date()) // today
+//   const startDate = formatDate(new Date(Date.now() - 864e5)) // yesterday
 
-  const url = `https://api.imagekit.io/v1/accounts/usage?startDate=${startDate}&endDate=${endDate}`
+//   const url = `https://api.imagekit.io/v1/accounts/usage?startDate=${startDate}&endDate=${endDate}`
 
-  const httpRequest = https.request(
-    url,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization:
-          "Basic " +
-          Buffer.from(process.env.IMAGEKIT_PRIVATE + ":").toString("base64"),
-      },
-    },
-    response => {
-      let responseData = ""
+//   const httpRequest = https.request(
+//     url,
+//     {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization:
+//           "Basic " +
+//           Buffer.from(process.env.IMAGEKIT_PRIVATE + ":").toString("base64"),
+//       },
+//     },
+//     response => {
+//       let responseData = ""
 
-      response.on("data", chunk => {
-        responseData += chunk
-      })
+//       response.on("data", chunk => {
+//         responseData += chunk
+//       })
 
-      response.on("end", () => {
-        res.status(200).json(JSON.parse(responseData))
-      })
-    }
-  )
+//       response.on("end", () => {
+//         res.status(200).json(JSON.parse(responseData))
+//       })
+//     }
+//   )
 
-  httpRequest.on("error", error => {
-    console.error("Error:", error.message)
-    res.status(500).json({ error: "Internal Server Error" })
-  })
+//   httpRequest.on("error", error => {
+//     console.error("Error:", error.message)
+//     res.status(500).json({ error: "Internal Server Error" })
+//   })
 
-  httpRequest.end()
-})
+//   httpRequest.end()
+// })
 
 module.exports = router
