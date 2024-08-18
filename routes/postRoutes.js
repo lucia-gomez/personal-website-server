@@ -152,8 +152,8 @@ router.get("/prev/:slug", (req, res) => {
   PostsModel.findOne({ slug })
     .then(doc => {
       if (doc) {
-        PostsModel.findOne({ _id: { $lt: doc._id } })
-          .sort({ _id: -1 })
+        PostsModel.findOne({ dateString: { $lt: doc.dateString } })
+          .sort({ dateString: -1 })
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
@@ -177,8 +177,8 @@ router.get("/next/:slug", (req, res) => {
   PostsModel.findOne({ slug })
     .then(doc => {
       if (doc) {
-        PostsModel.findOne({ _id: { $gt: doc._id } })
-          .sort({ _id: 1 })
+        PostsModel.findOne({ dateString: { $gt: doc.dateString } })
+          .sort({ dateString: 1 })
           .then(nextDoc => res.send(nextDoc))
           .catch(e => {
             console.error(e)
