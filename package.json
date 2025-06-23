@@ -17,6 +17,7 @@
   "dependencies": {
     "aws-sdk": "^2.1532.0",
     "body-parser": "^1.19.0",
+    "contentful": "^11.7.2",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.3",
